@@ -911,7 +911,7 @@ int main(int argc, char** argv)
         }
     }
 
-    if (conf.output_final_anything) {
+    if (0 && conf.output_final_anything) {
         op_printf("-----------------------------------------------------\n");
         op_printf("Writing out data...\n");
         for (int l=0; l<levels; l++)
@@ -1002,6 +1002,7 @@ int main(int argc, char** argv)
         // the same time.
         if (my_rank == 0) {
     #endif
+    /*
     dump_file_io_perf_data_to_file(
         my_rank, 
         levels, 
@@ -1009,13 +1010,16 @@ int main(int argc, char** argv)
         file_io_times, 
         number_of_file_io_writes, 
         conf.output_file_prefix);
+    */
     #ifndef DUMP_EXT_PERF_DATA
         }
     #endif
 
     op_printf("-----------------------------------------------------\n");
     op_printf("Winding down OP2\n");
-    op_exit();
+    
+    MPI_Finalize();
+    //op_exit();
 
     return 0;
 }

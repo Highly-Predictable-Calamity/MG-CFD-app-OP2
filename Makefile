@@ -23,6 +23,14 @@ ifdef HDF5_INSTALL_PATH
 endif
 HDF5_LIB += -lhdf5 -lz
 
+ifdef GPI_INSTALL_PATH
+  GPI_INC = -I$(GPI_INSTALL_PATH)/include
+  GPI_LIB = -L$(GPI_INSTALL_PATH)/lib64
+endif
+GPI_INC += -DHAVE_GPI
+GPI_LIB += -lGPI2
+
+
 PARMETIS_VER=4
 ifdef PARMETIS_INSTALL_PATH
   PARMETIS_INC = -I$(PARMETIS_INSTALL_PATH)/include
@@ -36,14 +44,16 @@ endif
 
 ifdef KAHIP_INSTALL_PATH
   KAHIP_INC = -I$(KAHIP_INSTALL_PATH)/include
-  KAHIP_LIB = -L$(KAHIP_INSTALL_PATH)/lib
+  #KAHIP_INC = -I$(KAHIP_INSTALL_PATH)/include
+  KAHIP_LIB = -L$(KAHIP_INSTALL_PATH)/build/parallel/parallel_src
+  #KAHIP_LIB = -L$(KAHIP_INSTALL_PATH)/lib
 endif
 KAHIP_INC += -DHAVE_KAHIP
 KAHIP_LIB += -lparhip_interface
 
 ifdef PTSCOTCH_INSTALL_PATH
-  PTSCOTCH_INC 	= -I$(PTSCOTCH_INSTALL_PATH)/include
-  PTSCOTCH_LIB 	= -L$(PTSCOTCH_INSTALL_PATH)/lib
+  PTSCOTCH_INC 	= -I$(PTSCOTCH_INSTALL_PATH)/src/include
+  PTSCOTCH_LIB 	= -L$(PTSCOTCH_INSTALL_PATH)/build/lib
 endif
 PTSCOTCH_INC += -DHAVE_PTSCOTCH
 PTSCOTCH_LIB += -lptscotch -lscotch -lptscotcherr
@@ -362,8 +372,10 @@ endif
 
 
 #all: seq openmp mpi mpi_vec mpi_openmp
-all: seq openmp mpi mpi_vec mpi_openmp cuda mpi_cuda sycl
+#all: seq openmp mpi mpi_vec mpi_openmp cuda mpi_cuda sycl
 # all: seq openmp mpi mpi_vec mpi_openmp cuda mpi_cuda openacc openmp4
+all: gpi
+
 
 parallel: N = $(shell nproc)
 parallel:; @$(MAKE) -j$(N) -l$(N) all
@@ -373,6 +385,7 @@ seq: $(BIN_DIR)/mgcfd_seq
 sycl: $(BIN_DIR)/mgcfd_sycl
 openmp: $(BIN_DIR)/mgcfd_openmp
 mpi: $(BIN_DIR)/mgcfd_mpi
+gpi: $(BIN_DIR)/mgcfd_mpi
 vec: mpi_vec
 mpi_vec: $(BIN_DIR)/mgcfd_mpi_vec
 mpi_openmp: $(BIN_DIR)/mgcfd_mpi_openmp
@@ -392,6 +405,8 @@ OP2_SYCL_OBJECTS := $(OBJ_DIR)/mgcfd_sycl_main.o \
 
 OP2_MPI_OBJECTS := $(OBJ_DIR)/mgcfd_mpi_main.o \
                    $(OBJ_DIR)/mgcfd_mpi_kernels.o
+
+OP2_GPI_OBJECTS := $(OP2_MPI_OBJECTS)
 
 OP2_MPI_VEC_OBJECTS := $(OBJ_DIR)/mgcfd_mpi_vec_main.o \
                        $(OBJ_DIR)/mgcfd_mpi_vec_kernels.o
@@ -505,19 +520,19 @@ $(BIN_DIR)/mgcfd_openmp: $(OP2_OMP_OBJECTS)
 		-o $@
 
 
-## MPI
+## MPI (GPI hack)
 $(OBJ_DIR)/mgcfd_mpi_main.o: $(OP2_MAIN_SRC)
 	mkdir -p $(OBJ_DIR)
-	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) \
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC)\
 	     -DMPI_ON -c -o $@ $^
 $(OBJ_DIR)/mgcfd_mpi_kernels.o: $(SRC_DIR)/../seq/_seqkernels.cpp $(SEQ_KERNELS)
 	mkdir -p $(OBJ_DIR)
-	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) \
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC)\
 	     -DMPI_ON -c -o $@ $(SRC_DIR)/../seq/_seqkernels.cpp
 $(BIN_DIR)/mgcfd_mpi: $(OP2_MPI_OBJECTS)
 	mkdir -p $(BIN_DIR)
 	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $^ $(MGCFD_LIBS) \
-		-lm $(OP2_LIB) -lop2_mpi $(PARMETIS_LIB) $(KAHIP_LIB) $(PTSCOTCH_LIB) $(HDF5_LIB) \
+		-lm $(OP2_LIB) -lop2_gpi $(PARMETIS_LIB) $(KAHIP_LIB) $(PTSCOTCH_LIB) $(HDF5_LIB) $(GPI_LIB)\
 		-o $@
 
 
