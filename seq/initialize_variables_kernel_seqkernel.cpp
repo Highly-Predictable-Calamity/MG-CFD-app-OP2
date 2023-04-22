@@ -14,6 +14,7 @@ void op_par_loop_initialize_variables_kernel(char const *name, op_set set,
 
   args[0] = arg0;
 
+
   // initialise timers
   double cpu_t1, cpu_t2, wall_t1, wall_t2;
   op_timing_realloc(0);
@@ -24,7 +25,7 @@ void op_par_loop_initialize_variables_kernel(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  initialize_variables_kernel");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
 

@@ -28,7 +28,7 @@ void op_par_loop_identify_differences(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  identify_differences");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
 

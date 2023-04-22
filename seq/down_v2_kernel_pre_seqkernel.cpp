@@ -26,7 +26,7 @@ void op_par_loop_down_v2_kernel_pre(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  down_v2_kernel_pre");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
 

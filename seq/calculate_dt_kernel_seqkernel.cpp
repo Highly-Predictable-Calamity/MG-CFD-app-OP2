@@ -28,7 +28,7 @@ void op_par_loop_calculate_dt_kernel(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  calculate_dt_kernel");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
 

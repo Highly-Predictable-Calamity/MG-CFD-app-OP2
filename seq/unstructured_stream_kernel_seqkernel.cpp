@@ -52,14 +52,14 @@ void op_par_loop_unstructured_stream_kernel_instrumented(
     printf(" kernel routine with indirection: unstructured_stream_kernel\n");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
     #ifdef MEASURE_MEM_BW
       // Need to ensure that MPI complete before timing. 
       // Not necessary to insert an explicit barrier, at least for 
       // single node benchmarking.
-      op_mpi_wait_all(nargs, args);
+      op_gpi_waitall_args(nargs, args);
       op_timers_core(&cpu_t1, &wall_t1);
     #endif
 
@@ -72,7 +72,7 @@ void op_par_loop_unstructured_stream_kernel_instrumented(
         #ifdef PAPI
           my_papi_stop(event_counts);
         #endif
-        op_mpi_wait_all(nargs, args);
+        op_gpi_waitall_args(nargs, args);
         #ifdef PAPI
           my_papi_start();
         #endif
@@ -95,7 +95,7 @@ void op_par_loop_unstructured_stream_kernel_instrumented(
   }
 
   if (set_size == 0 || set_size == set->core_size) {
-    op_mpi_wait_all(nargs, args);
+    op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
   op_mpi_set_dirtybit(nargs, args);

@@ -64,7 +64,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
   }
 
   op_timers_core(&inner_cpu_t1, &inner_wall_t1);
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
   op_timers_core(&inner_cpu_t2, &inner_wall_t2);
   sync_time += inner_wall_t2 - inner_wall_t1;
 
@@ -83,7 +83,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
 
         op_timers_core(&inner_cpu_t2, &inner_wall_t2);
         compute_time += inner_wall_t2 - inner_wall_t1;
-        op_mpi_wait_all(nargs, args);
+        op_gpi_waitall_args(nargs, args);
         op_timers_core(&inner_cpu_t1, &inner_wall_t1);
         sync_time += inner_wall_t1 - inner_wall_t2;
 
@@ -113,7 +113,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
 
   op_timers_core(&inner_cpu_t1, &inner_wall_t1);
   if (set_size == 0 || set_size == set->core_size) {
-    op_mpi_wait_all(nargs, args);
+    op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
   op_mpi_set_dirtybit(nargs, args);

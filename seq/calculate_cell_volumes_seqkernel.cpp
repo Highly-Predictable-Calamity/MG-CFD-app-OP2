@@ -31,13 +31,13 @@ void op_par_loop_calculate_cell_volumes(char const *name, op_set set,
     printf(" kernel routine with indirection: calculate_cell_volumes\n");
   }
 
-  int set_size = op_mpi_halo_exchanges(set, nargs, args);
+  int set_size = op_gpi_halo_exchanges(set, nargs, args);
 
   if (set_size >0) {
 
     for ( int n=0; n<set_size; n++ ){
       if (n==set->core_size) {
-        op_mpi_wait_all(nargs, args);
+        op_gpi_waitall_args(nargs, args);
       }
       int map0idx = arg0.map_data[n * arg0.map->dim + 0];
       int map1idx = arg0.map_data[n * arg0.map->dim + 1];
@@ -53,7 +53,7 @@ void op_par_loop_calculate_cell_volumes(char const *name, op_set set,
   }
 
   if (set_size == 0 || set_size == set->core_size) {
-    op_mpi_wait_all(nargs, args);
+    op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
   op_mpi_set_dirtybit(nargs, args);
