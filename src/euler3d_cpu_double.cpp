@@ -651,15 +651,17 @@ int main(int argc, char** argv)
     op_printf("Max total runtime = %f\n", walltime);
 
     // Write summary performance data to stdout:
-    op_timing_output();
+    //op_timing_output();
 
     // Write full performance data to file:
     std::string csv_out_filepath(conf.output_file_prefix);
     csv_out_filepath += "op2_performance_data.csv";
     op_printf("Writing OP2 timings to file: %s\n", csv_out_filepath.c_str());
-    op_timings_to_csv(csv_out_filepath.c_str());
+    //op_timings_to_csv(csv_out_filepath.c_str());
 
-    if (conf.validate_result) {
+    op_printf("Done writing to file.\n");
+
+    if (0 && conf.validate_result) {
         op_printf("-----------------------------------------------------\n");
 
         bool value_check_failed = false;
@@ -721,7 +723,7 @@ int main(int argc, char** argv)
         }
     }
 
-    if (conf.output_final_anything) {
+    if (0 && conf.output_final_anything) {
         op_printf("-----------------------------------------------------\n");
         op_printf("Writing out data...\n");
         for (int l=0; l<levels; l++)
@@ -812,6 +814,7 @@ int main(int argc, char** argv)
         // the same time.
         if (my_rank == 0) {
     #endif
+    /*
     dump_file_io_perf_data_to_file(
         my_rank, 
         levels, 
@@ -819,13 +822,15 @@ int main(int argc, char** argv)
         file_io_times, 
         number_of_file_io_writes, 
         conf.output_file_prefix);
+    */
     #ifndef DUMP_EXT_PERF_DATA
         }
     #endif
 
     op_printf("-----------------------------------------------------\n");
     op_printf("Winding down OP2\n");
-    op_exit();
+    MPI_Finalize();
+    //op_exit();
 
     return 0;
 }
