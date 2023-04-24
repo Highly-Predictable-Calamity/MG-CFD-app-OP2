@@ -44,7 +44,7 @@ void op_par_loop_indirect_rw_kernel(char const *name, op_set set,
     int part_size = OP_part_size;
   #endif
 
-  op_mpi_halo_exchanges_cuda(set, nargs, args);
+  op_gpi_halo_exchanges_cuda(set, nargs, args);
   if (set->size > 0) {
 
     op_plan *Plan = op_plan_get_stage(name,set,part_size,nargs,args,ninds,inds,OP_STAGE_ALL);
@@ -64,7 +64,7 @@ void op_par_loop_indirect_rw_kernel(char const *name, op_set set,
     int block_offset = 0;
     for ( int col=0; col<Plan->ncolors; col++ ){
       if (col==Plan->ncolors_core) {
-        op_mpi_wait_all_cuda(nargs, args);
+        op_gpi_wait_all_cuda(nargs, args);
       }
       #ifdef OP_BLOCK_SIZE_12
       int nthread = OP_BLOCK_SIZE_12;
@@ -224,7 +224,7 @@ void op_par_loop_indirect_rw_kernel(char const *name, op_set set,
     OP_kernels[12].transfer  += Plan->transfer;
     OP_kernels[12].transfer2 += Plan->transfer2;
   }
-  op_mpi_set_dirtybit_cuda(nargs, args);
+  op_gpi_set_dirtybit_cuda(nargs, args);
   op2_queue->wait();
   //update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

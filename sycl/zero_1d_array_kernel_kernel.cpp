@@ -31,7 +31,7 @@ void op_par_loop_zero_1d_array_kernel(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  zero_1d_array_kernel\n");
   }
 
-  op_mpi_halo_exchanges_cuda(set, nargs, args);
+  op_gpi_halo_exchanges_cuda(set, nargs, args);
   if (set->size > 0) {
 
     //set SYCL execution parameters
@@ -73,7 +73,7 @@ void op_par_loop_zero_1d_array_kernel(char const *name, op_set set,
     std::cout << e.what() << std::endl;exit(-1);
     }
   }
-  op_mpi_set_dirtybit_cuda(nargs, args);
+  op_gpi_set_dirtybit_cuda(nargs, args);
   op2_queue->wait();
   //update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

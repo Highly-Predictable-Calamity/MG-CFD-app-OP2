@@ -166,7 +166,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
     int part_size = OP_part_size;
   #endif
 
-  op_mpi_halo_exchanges_cuda(set, nargs, args);
+  op_gpi_halo_exchanges_cuda(set, nargs, args);
   if (set->size > 0) {
 
     op_plan *Plan = op_plan_get_stage(name,set,part_size,nargs,args,ninds,inds,OP_STAGE_ALL);
@@ -194,7 +194,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
           my_papi_stop(event_counts);
         #endif
 
-        op_mpi_wait_all_cuda(nargs, args);
+        op_gpi_wait_all_cuda(nargs, args);
 
         #ifdef PAPI
           my_papi_start();
@@ -479,7 +479,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
       my_papi_stop(event_counts);
     #endif
   }
-  op_mpi_set_dirtybit_cuda(nargs, args);
+  op_gpi_set_dirtybit_cuda(nargs, args);
   op2_queue->wait();
   //update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

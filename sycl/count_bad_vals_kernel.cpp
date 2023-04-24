@@ -31,7 +31,7 @@ void op_par_loop_count_bad_vals(char const *name, op_set set,
     printf(" kernel routine w/o indirection:  count_bad_vals\n");
   }
 
-  op_mpi_halo_exchanges_cuda(set, nargs, args);
+  op_gpi_halo_exchanges_cuda(set, nargs, args);
   if (set->size > 0) {
 
     //set SYCL execution parameters
@@ -125,10 +125,10 @@ void op_par_loop_count_bad_vals(char const *name, op_set set,
       }
     }
     arg1.data = (char *)arg1h;
-    op_mpi_reduce(&arg1,arg1h);
+    op_gpi_reduce(&arg1,arg1h);
     freeReductArrays("int");
   }
-  op_mpi_set_dirtybit_cuda(nargs, args);
+  op_gpi_set_dirtybit_cuda(nargs, args);
   op2_queue->wait();
   //update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

@@ -38,8 +38,8 @@ void op_par_loop_count_non_zeros(char const *name, op_set set,
   }
 
   // combine reduction data
-  op_mpi_reduce_int(&arg1,(int*)arg1.data);
-  op_mpi_set_dirtybit(nargs, args);
+  op_gpi_reduce_int(&arg1,(int*)arg1.data);
+  op_gpi_set_dirtybit(nargs, args);
 
   // update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

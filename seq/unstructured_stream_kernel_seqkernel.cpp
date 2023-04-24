@@ -56,7 +56,7 @@ void op_par_loop_unstructured_stream_kernel_instrumented(
 
   if (set_size >0) {
     #ifdef MEASURE_MEM_BW
-      // Need to ensure that MPI complete before timing. 
+      // Need to ensure that gpi complete before timing. 
       // Not necessary to insert an explicit barrier, at least for 
       // single node benchmarking.
       op_gpi_waitall_args(nargs, args);
@@ -98,7 +98,7 @@ void op_par_loop_unstructured_stream_kernel_instrumented(
     op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
-  op_mpi_set_dirtybit(nargs, args);
+  op_gpi_set_dirtybit(nargs, args);
 
   // update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

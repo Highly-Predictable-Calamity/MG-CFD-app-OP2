@@ -22,6 +22,8 @@
 #include <vector>
 #include <limits>
 
+#include <GASPI.h>
+#include <mpi.h>
 #include "hdf5.h"
 
 #ifdef PAPI
@@ -667,6 +669,9 @@ int main(int argc, char** argv)
                     op_arg_dat(p_step_factors[level],-1,OP_ID,1,"double",OP_WRITE));
 
         int rkCycle;
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+        
         for (rkCycle=0; rkCycle<RK; rkCycle++)
         {
             #ifdef LOG_PROGRESS
@@ -688,11 +693,14 @@ int main(int argc, char** argv)
                         #endif
                         );
 
+            gaspi_barrier(GASPI_GROUP_ALL,4000);
+
             op_par_loop_compute_bnd_node_flux_kernel("compute_bnd_node_flux_kernel",op_bnd_nodes[level],
                         op_arg_dat(p_bnd_node_groups[level],-1,OP_ID,1,"int",OP_READ),
                         op_arg_dat(p_bnd_node_weights[level],-1,OP_ID,3,"double",OP_READ),
                         op_arg_dat(p_variables[level],0,p_bnd_node_to_node[level],5,"double",OP_READ),
                         op_arg_dat(p_fluxes[level],0,p_bnd_node_to_node[level],5,"double",OP_INC));
+
 
             op_par_loop_time_step_kernel("time_step_kernel",op_nodes[level],
                         op_arg_gbl(&rkCycle,1,"int",OP_READ),
@@ -700,6 +708,7 @@ int main(int argc, char** argv)
                         op_arg_dat(p_fluxes[level],-1,OP_ID,5,"double",OP_INC),
                         op_arg_dat(p_old_variables[level],-1,OP_ID,5,"double",OP_READ),
                         op_arg_dat(p_variables[level],-1,OP_ID,5,"double",OP_WRITE));
+
 
             if (conf.measure_mem_bound) {
                 op_par_loop_unstructured_stream_kernel_instrumented("unstructured_stream_kernel",op_edges[level],

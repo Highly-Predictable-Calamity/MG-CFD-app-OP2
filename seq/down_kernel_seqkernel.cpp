@@ -55,7 +55,7 @@ void op_par_loop_down_kernel(char const *name, op_set set,
     op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
-  op_mpi_set_dirtybit(nargs, args);
+  op_gpi_set_dirtybit(nargs, args);
 
   // update kernel record
   op_timers_core(&cpu_t2, &wall_t2);

@@ -116,7 +116,7 @@ void op_par_loop_compute_flux_edge_kernel_instrumented(
     op_gpi_waitall_args(nargs, args);
   }
   // combine reduction data
-  op_mpi_set_dirtybit(nargs, args);
+  op_gpi_set_dirtybit(nargs, args);
   op_timers_core(&inner_cpu_t2, &inner_wall_t2);
   sync_time += inner_wall_t2 - inner_wall_t1;
 
