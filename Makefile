@@ -17,19 +17,17 @@ ifdef CUDA_INSTALL_PATH
   CUDA_LIB = -L$(CUDA_INSTALL_PATH)/lib64
 endif
 
+ifdef GPI_INSTALL_PATH
+  GPI_INC = -I$(GPI_INSTALL_PATH)/include
+  GPI_LIB = -L$(GPI_INSTALL_PATH)/lib64
+endif
+GPI_LIB += -lGPI2
+
 ifdef HDF5_INSTALL_PATH
   HDF5_INC = -I$(HDF5_INSTALL_PATH)/include
   HDF5_LIB = -L$(HDF5_INSTALL_PATH)/lib
 endif
 HDF5_LIB += -lhdf5 -lz
-
-ifdef GPI_INSTALL_PATH
-  GPI_INC = -I$(GPI_INSTALL_PATH)/include
-  GPI_LIB = -L$(GPI_INSTALL_PATH)/lib64
-endif
-GPI_INC += -DHAVE_GPI
-GPI_LIB += -lGPI2
-
 
 PARMETIS_VER=4
 ifdef PARMETIS_INSTALL_PATH
@@ -44,9 +42,7 @@ endif
 
 ifdef KAHIP_INSTALL_PATH
   KAHIP_INC = -I$(KAHIP_INSTALL_PATH)/include
-  #KAHIP_INC = -I$(KAHIP_INSTALL_PATH)/include
   KAHIP_LIB = -L$(KAHIP_INSTALL_PATH)/build/parallel/parallel_src
-  #KAHIP_LIB = -L$(KAHIP_INSTALL_PATH)/lib
 endif
 KAHIP_INC += -DHAVE_KAHIP
 KAHIP_LIB += -lparhip_interface
@@ -374,6 +370,7 @@ endif
 #all: seq openmp mpi mpi_vec mpi_openmp
 #all: seq openmp mpi mpi_vec mpi_openmp cuda mpi_cuda sycl
 # all: seq openmp mpi mpi_vec mpi_openmp cuda mpi_cuda openacc openmp4
+
 all: gpi
 
 
@@ -385,7 +382,7 @@ seq: $(BIN_DIR)/mgcfd_seq
 sycl: $(BIN_DIR)/mgcfd_sycl
 openmp: $(BIN_DIR)/mgcfd_openmp
 mpi: $(BIN_DIR)/mgcfd_mpi
-gpi: $(BIN_DIR)/mgcfd_mpi
+gpi: $(BIN_DIR)/mgcfd_gpi
 vec: mpi_vec
 mpi_vec: $(BIN_DIR)/mgcfd_mpi_vec
 mpi_openmp: $(BIN_DIR)/mgcfd_mpi_openmp
@@ -403,10 +400,11 @@ OP2_SEQ_OBJECTS := $(OBJ_DIR)/mgcfd_seq_main.o \
 OP2_SYCL_OBJECTS := $(OBJ_DIR)/mgcfd_sycl_main.o \
                    $(OBJ_DIR)/mgcfd_sycl_kernels.o
 
+OP2_GPI_OBJECTS := $(OBJ_DIR)/mgcfd_gpi_main.o\
+						       $(OBJ_DIR)/mgcfd_gpi_kernels.o
+
 OP2_MPI_OBJECTS := $(OBJ_DIR)/mgcfd_mpi_main.o \
                    $(OBJ_DIR)/mgcfd_mpi_kernels.o
-
-OP2_GPI_OBJECTS := $(OP2_MPI_OBJECTS)
 
 OP2_MPI_VEC_OBJECTS := $(OBJ_DIR)/mgcfd_mpi_vec_main.o \
                        $(OBJ_DIR)/mgcfd_mpi_vec_kernels.o
@@ -456,6 +454,7 @@ KERNELS := calc_rms_kernel \
 	zero_1d_array_kernel \
 	zero_5d_array_kernel
 SEQ_KERNELS := $(patsubst %, $(SRC_DIR)/../seq/%_seqkernel.cpp, $(KERNELS))
+GPI_SEQ_KERNELS := $(patsubst %, $(SRC_DIR)/../gpi_seq/%_gpiseqkernel.cpp, $(KERNELS))
 SYCL_KERNELS := $(patsubst %, $(SRC_DIR)/../sycl/%_kernel.cpp, $(KERNELS))
 OMP_KERNELS := $(patsubst %, $(SRC_DIR)/../openmp/%_kernel.cpp, $(KERNELS))
 CUDA_KERNELS := $(patsubst %, $(SRC_DIR)/../cuda/%_kernel.cu, $(KERNELS))
@@ -520,21 +519,35 @@ $(BIN_DIR)/mgcfd_openmp: $(OP2_OMP_OBJECTS)
 		-o $@
 
 
-## MPI (GPI hack)
+## MPI
 $(OBJ_DIR)/mgcfd_mpi_main.o: $(OP2_MAIN_SRC)
 	mkdir -p $(OBJ_DIR)
-	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC)\
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) \
 	     -DMPI_ON -c -o $@ $^
 $(OBJ_DIR)/mgcfd_mpi_kernels.o: $(SRC_DIR)/../seq/_seqkernels.cpp $(SEQ_KERNELS)
 	mkdir -p $(OBJ_DIR)
-	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC)\
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) \
 	     -DMPI_ON -c -o $@ $(SRC_DIR)/../seq/_seqkernels.cpp
 $(BIN_DIR)/mgcfd_mpi: $(OP2_MPI_OBJECTS)
 	mkdir -p $(BIN_DIR)
 	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $^ $(MGCFD_LIBS) \
-		-lm $(OP2_LIB) -lop2_gpi $(PARMETIS_LIB) $(KAHIP_LIB) $(PTSCOTCH_LIB) $(HDF5_LIB) $(GPI_LIB)\
+		-lm $(OP2_LIB) -lop2_mpi $(PARMETIS_LIB) $(KAHIP_LIB) $(PTSCOTCH_LIB) $(HDF5_LIB) \
 		-o $@
 
+## GPI
+$(OBJ_DIR)/mgcfd_gpi_main.o: $(OP2_MAIN_SRC)
+	mkdir -p $(OBJ_DIR)
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC) \
+	     -DMPI_ON -c -o $@ $^
+$(OBJ_DIR)/mgcfd_gpi_kernels.o: $(SRC_DIR)/../gpi_seq/_gpiseqkernels.cpp $(GPISEQ_KERNELS)
+	mkdir -p $(OBJ_DIR)
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $(MGCFD_INCS) $(OP2_INC) $(HDF5_INC) $(GPI_INC) \
+	     -DMPI_ON -c -o $@ $(SRC_DIR)/../gpi_seq/_gpiseqkernels.cpp
+$(BIN_DIR)/mgcfd_gpi: $(OP2_GPI_OBJECTS)
+	mkdir -p $(BIN_DIR)
+	$(MPICPP) $(CPPFLAGS) $(OPTIMISE) $^ $(MGCFD_LIBS) \
+		-lm $(OP2_LIB) -lop2_gpi $(PARMETIS_LIB) $(KAHIP_LIB) $(PTSCOTCH_LIB) $(HDF5_LIB) $(GPI_LIB)\
+		-o $@
 
 ## MPI_VEC
 $(OBJ_DIR)/mgcfd_mpi_vec_main.o: $(OP2_MAIN_SRC)
